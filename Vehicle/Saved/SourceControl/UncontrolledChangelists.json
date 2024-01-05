@@ -1,0 +1,15 @@
+{
+	"version": 1,
+	"changelists": [
+		{
+			"guid": "00000000000000000000000000000000",
+			"description": "Default Uncontrolled Changelist",
+			"files": [
+				"C:/Users/c011185l/Downloads/Vehicle/Content/VehicleTemplate/Blueprints/SportsCar/SportsCar_Pawn.uasset",
+				"C:/Users/c011185l/Downloads/Vehicle/Content/VehicleTemplate/Blueprints/VehicleAdvGameMode.uasset",
+				"C:/Users/c011185l/Downloads/Vehicle/Content/VehicleTemplate/Blueprints/OffroadGameMode.uasset",
+				"C:/Users/c011185l/Downloads/Vehicle/Content/BP_Tank.uasset"
+			]
+		}
+	]
+}
