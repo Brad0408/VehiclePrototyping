@@ -6,7 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "LandMine.generated.h"
 
+
 class UBoxComponent;
+class UNiagaraSystem;
+class USoundBase;
+class UForceFeedbackEffect;
 
 UCLASS()
 class VEHICLE_API ALandMine : public AActor
@@ -17,26 +21,33 @@ public:
 	// Sets default values for this actor's properties
 	ALandMine();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	//Damage of landmine
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float BaseDamage;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UDamageType> DamageType;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	FString Message = FString(TEXT("OVERLAPPED"));
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite);
+	//Create BoxCollision
+	UPROPERTY(EditAnywhere, BlueprintReadWrite);
 	UBoxComponent* BoxCollision;
 
+	//Create NiagaraEffect
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	class UNiagaraSystem* NiagaraEffect;
+
+	//Create ExplosionSound
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	class USoundBase* ExplosionSound;
+
+	//Create ForceFeedback
+	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
+	class UForceFeedbackEffect* ForceFeedbackEffect;
+
+	//Overlap Event Function
 	UFUNCTION()
 	void BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 };

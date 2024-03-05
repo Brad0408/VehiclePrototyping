@@ -4,6 +4,8 @@
 #include "LandMine.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+
 
 
 
@@ -13,10 +15,13 @@ ALandMine::ALandMine()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
+	//Actually Create BoxCol
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX COLLIDER"));
+
+	SetRootComponent(BoxCollision);
+
+	//Set Base Damage
 	BaseDamage = 25.0f;
-
-
 
 }
 
@@ -24,27 +29,56 @@ ALandMine::ALandMine()
 void ALandMine::BeginPlay()
 {
 	Super::BeginPlay();
-	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ALandMine::BeginOverlap);
 
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("ACTUAL TEXT?%"), *Message));
-	}
+	//Call Overlap function of box collision
+	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &ALandMine::BeginOverlap);
 	
 }
 
+//Overlap Event/Function
 void ALandMine::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AController* PlayerC = GetInstigator()->GetController();
 
-	UGameplayStatics::ApplyDamage(OtherActor, BaseDamage, PlayerC, this, DamageType);
-	//Destroy();
-}
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("overlapped%")));
+	//}
 
-// Called every frame
-void ALandMine::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	//GetActorLocation
+	FVector SpawnLocation = GetActorLocation();
 
+	//Apply Damage to Other Actor (Tank)
+	UGameplayStatics::ApplyDamage(OtherActor, BaseDamage, GetInstigatorController(), this, nullptr);
+
+
+	//Play sound cue at location
+	UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, SpawnLocation);
+
+
+	//Play VFX at location
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraEffect, SpawnLocation);
+
+	
+	//Get ref to player controller
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+
+
+	//If PC is valid
+	if (PlayerController)
+	{
+		//Create FFbackparameter struct ref
+		FForceFeedbackParameters ForceFeedbackParams;
+
+		//Set the variables in struct
+		ForceFeedbackParams.Tag = FName(TEXT(""));
+		ForceFeedbackParams.bLooping = false;
+
+		//Play force feedback using struct data and effect set in editor
+		PlayerController->ClientPlayForceFeedback(ForceFeedbackEffect, ForceFeedbackParams);
+
+	}
+
+	Destroy();
 }
 
