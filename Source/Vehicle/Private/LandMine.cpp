@@ -18,8 +18,6 @@ ALandMine::ALandMine()
 	//Actually Create BoxCol
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX COLLIDER"));
 
-	SetRootComponent(BoxCollision);
-
 	//Set Base Damage
 	BaseDamage = 25.0f;
 
