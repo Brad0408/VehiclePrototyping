@@ -21,7 +21,7 @@ public:
 	// Sets default values for this actor's properties
 	ALandMine();
 
-	//Damage of landmine
+	//Define Damage of landmine
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float BaseDamage;
 
@@ -30,19 +30,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//Create BoxCollision
+	//Declare BoxCollision to be set in editor
 	UPROPERTY(EditAnywhere);
 	UBoxComponent* BoxCollision;
 
-	//Create NiagaraEffect
+	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
 	class UNiagaraSystem* NiagaraEffect;
 
-	//Create ExplosionSound
+	//Declare ExplosionSound to be set in editor
 	UPROPERTY(EditAnywhere, Category = "Sounds")
 	class USoundBase* ExplosionSound;
 
-	//Create ForceFeedback
+	//Declare ForceFeedback to be set in editor
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
 	class UForceFeedbackEffect* ForceFeedbackEffect;
 

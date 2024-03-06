@@ -46,16 +46,16 @@ void ATankShell::BeginPlay()
 //Do stuff when projectile stops
 void ATankShell::OnProjectileStop(const FHitResult& ImpactResult)
 {
-	//Get Impact point of the impact 
+	//Get Impact point of the impact
 	FVector ImpactPoint = ImpactResult.ImpactPoint;
 
-	//Get the normal of the impact 
+	//Get the normal of the impact
 	FVector ImpactNormal = ImpactResult.ImpactNormal;
 
 	//Rotate from the impact normal so VFX explosion spawns right way up
 	FRotator RotationFromNormal = FRotationMatrix::MakeFromZ(ImpactNormal).Rotator();
 
-	// Retrieve the hit component from the FHitResult
+	// Retrieve the hit component from the ImpactResults
 	UPrimitiveComponent* HitComponent = ImpactResult.GetComponent();
 
 

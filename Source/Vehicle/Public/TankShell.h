@@ -46,25 +46,25 @@ protected:
 
 
 
-	// Reference to Projectile Movement Component
+	//Declare Reference to Projectile Movement Component
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
 	UProjectileMovementComponent* ProjectileMovementComponent;
 
-	//Create NiagaraEffect
+	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
 	class UNiagaraSystem* NiagaraEffect;
 
-	//Create ExplosionSound
+	//Declare ExplosionSound to be set in editor
 	UPROPERTY(EditAnywhere, Category = "Sounds")
 	class USoundBase* ExplosionSound;
 
-	//Create ForceFeedback
+	//Declare ForceFeedback to be set in editor
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
 	class UForceFeedbackEffect* ForceFeedbackEffect;
 
 
 
-	//OnStop
+	//OnStop Function
 	UFUNCTION()
 	void OnProjectileStop(const FHitResult &ImpactResult);
 
