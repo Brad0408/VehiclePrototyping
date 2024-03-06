@@ -49,33 +49,47 @@ void ALandMine::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 	UGameplayStatics::ApplyDamage(OtherActor, BaseDamage, GetInstigatorController(), this, nullptr);
 
 
-	//Play sound cue at location
-	UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, SpawnLocation);
-
-
-	//Play VFX at location
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraEffect, SpawnLocation);
-
-	
-	//Get ref to player controller
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-
-
-	//If PC is valid
-	if (PlayerController)
+	//Check sound is assigned
+	if (ExplosionSound)
 	{
-		//Create FFbackparameter struct ref
-		FForceFeedbackParameters ForceFeedbackParams;
+		//Play sound cue at location
+		UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, SpawnLocation);
+	}
 
-		//Set the variables in struct
-		ForceFeedbackParams.Tag = FName(TEXT(""));
-		ForceFeedbackParams.bLooping = false;
 
-		//Play force feedback using struct data and effect set in editor
-		PlayerController->ClientPlayForceFeedback(ForceFeedbackEffect, ForceFeedbackParams);
+	//Check VFX is assigned
+	if (NiagaraEffect)
+	{
+		//Play VFX at location
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraEffect, SpawnLocation);
+	}
+
+	//Check FF is assigned
+	if (ForceFeedbackEffect)
+	{
+		//Get ref to player controller
+		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+
+
+		//If PC is valid
+		if (PlayerController)
+		{
+			//Create FFbackparameter struct ref
+			FForceFeedbackParameters ForceFeedbackParams;
+
+			//Set the variables in struct
+			ForceFeedbackParams.Tag = FName(TEXT(""));
+			ForceFeedbackParams.bLooping = false;
+
+			//Play force feedback using struct data and effect set in editor
+			PlayerController->ClientPlayForceFeedback(ForceFeedbackEffect, ForceFeedbackParams);
+
+		}
 
 	}
+
+
 
 	Destroy();
 }

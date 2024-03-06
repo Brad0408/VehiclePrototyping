@@ -31,15 +31,15 @@ protected:
 	virtual void BeginPlay() override;
 
 	//Create BoxCollision
-	UPROPERTY(EditAnywhere, BlueprintReadWrite);
+	UPROPERTY(EditAnywhere);
 	UBoxComponent* BoxCollision;
 
 	//Create NiagaraEffect
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	UPROPERTY(EditAnywhere, Category = "VFX")
 	class UNiagaraSystem* NiagaraEffect;
 
 	//Create ExplosionSound
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sounds")
+	UPROPERTY(EditAnywhere, Category = "Sounds")
 	class USoundBase* ExplosionSound;
 
 	//Create ForceFeedback
