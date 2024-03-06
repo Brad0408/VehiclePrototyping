@@ -5,34 +5,13 @@
 
 ATankDecoy::ATankDecoy()
 {
+	//Set low so you can just one shot the tank 
 	Health = 1.0f;
 }
 
-void ATankDecoy::BeginPlay()
-{	
-	Super::BeginPlay();
-
-	// Bind the HandleAnyDamageReceived function to the ReceiveAnyDamage event
-	OnTakeAnyDamage.AddDynamic(this, &ATankDecoy::ReceiveAnyDamage);
-}
-
-void ATankDecoy::ReceiveAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
-{
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("damaged%")));
-	}
-
-	ModifyHealth(Damage);
-}
 
 void ATankDecoy::ModifyHealth(float Damage)
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("funcalled%")));
-	}
-
 	if (Health > 0.0f)
 	{
 		Health = Health - Damage;
@@ -41,9 +20,7 @@ void ATankDecoy::ModifyHealth(float Damage)
 		{
 			Destroy();
 
-			//OnTankDestroyed();
-
+			//Afterwards SpawnActor is called to spawn BP_DestroyedTank (in BP)
 		}
 	}
 }
-

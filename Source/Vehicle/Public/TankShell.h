@@ -40,6 +40,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Damage Values")
 	float RadialStrength;
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -62,10 +63,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
 	class UForceFeedbackEffect* ForceFeedbackEffect;
 
-
-
 	//OnStop Function
 	UFUNCTION()
 	void OnProjectileStop(const FHitResult &ImpactResult);
+
 
 };

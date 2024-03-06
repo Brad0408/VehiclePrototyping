@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "WheeledVehiclePawn.h"
+#include "GameFramework/Actor.h"
 #include "TankDecoy.generated.h"
 
 /**
@@ -21,19 +22,24 @@ public:
 	//Create tank shell damage and radius values
 	UPROPERTY(EditAnywhere, Category = "Tank Values")
 	float Health;
+
+
+	//Cannot override in Actor.h - not virtual function 
+	// Instead just used EventAnyDamage in the BP itself
+	// 
+	//void ReceiveAnyDamage(float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+
+
+	//Works with pawns but tank shell is UGameplayStatics::ApplyRadialDamageWithFalloff which only effects actors
+	// Could work if tags were used in TankShell.cpp , not sure just sticking with EventAnyDamage
+	// 
+	//virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	
 protected:
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	//Declate EventTakeDamage
-	void ReceiveAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
-
-	//Declare a way to modify health
-	UFUNCTION()
+	//Declare a way to modify health - Call after EventAnyDamage
+	UFUNCTION(BlueprintCallable)
 	void ModifyHealth(float Damage);
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnTankDestroyed();
 };
