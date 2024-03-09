@@ -10,7 +10,8 @@
 
 
 class UChaosWheeledVehicleMovementComponent;
-
+class ATankShell;
+class USkeletalMeshComponent;
 
 /**
  * 
@@ -40,6 +41,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputAction* HandBreak;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Shooting;
 
 
 protected:
@@ -64,11 +67,23 @@ protected:
 	//Call for using handbreak
 	void HandBreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEventType);
 
+	//Call for shooting
+	void ShootingEvent(const FInputActionValue& Value);
+
 
 
 
 	UPROPERTY(BlueprintReadWrite)
 	UChaosWheeledVehicleMovementComponent* VehicleMoveComponent;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShakeBase>TankShootCameraShake;
+
+	UPROPERTY(EditAnywhere)
+	//ATankShell* TankShellProjectile;
+	TSubclassOf<ATankShell> TankShellProjectile;
+
+	UPROPERTY()
+	USkeletalMeshComponent* TankSkeletonMesh;
 
 };

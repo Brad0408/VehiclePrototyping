@@ -1,9 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
+
+#include "Tank.h"
+
 #include "ChaosVehicleMovementComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
-#include "Tank.h"
+#include "Kismet/GameplayStatics.h"
+
 
 
 ATank::ATank()
@@ -12,6 +16,8 @@ ATank::ATank()
    //VehicleMoveComponent = Cast<UChaosWheeledVehicleMovementComponent>(GetMovementComponent());
     VehicleMoveComponent = FindComponentByClass<UChaosWheeledVehicleMovementComponent>();
 
+    TankSkeletonMesh = FindComponentByClass<USkeletalMeshComponent>();
+    
 
 }
 
@@ -21,13 +27,13 @@ void ATank::BeginPlay()
 	Super::BeginPlay();
 
 
-    //if (ChaosMovementComponent)
-    //{
-    //    if (GEngine)
-    //    {
-    //        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("Chaos Movement Component: %s"), ChaosMovementComponent));
-    //    }
-    //}
+    if (TankSkeletonMesh)
+    {
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("Skeleton Component: %s")));
+        }
+    }
 
 }
 
@@ -70,6 +76,12 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
             //Call HandBreak
             EnhancedInputComponent->BindAction(HandBreak, ETriggerEvent::Triggered, this, &ATank::HandBreakEvent, ETriggerEvent::Triggered);
             EnhancedInputComponent->BindAction(HandBreak, ETriggerEvent::Completed, this, &ATank::HandBreakEvent, ETriggerEvent::Completed);
+        }
+
+        if (Shooting)
+        {   
+            //Call HandBreak
+            EnhancedInputComponent->BindAction(Shooting, ETriggerEvent::Triggered, this, &ATank::ShootingEvent);
         }
     }
 }
@@ -129,5 +141,27 @@ void ATank::HandBreakEvent(const FInputActionValue& Value, ETriggerEvent Trigger
     else
     {
         VehicleMoveComponent->SetHandbrakeInput(false);
+    }
+}
+
+
+void ATank::ShootingEvent(const FInputActionValue& Value)
+{
+    bool Fired = true;
+
+    if (Fired)
+    {   
+        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT(" Fired ")));
+        
+        UWorld* World = GetWorld();
+
+        if (TankShootCameraShake)
+        {
+            FVector EpicenterValue = GetActorLocation();
+
+            UGameplayStatics::PlayWorldCameraShake(GetWorld(), TankShootCameraShake, EpicenterValue, 0.0f, 10000.0f, 1.0f, false);
+        }
+ 
+        //TankShellProjectile = World->SpawnActor<ATankShell>();
     }
 }
