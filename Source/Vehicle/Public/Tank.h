@@ -6,12 +6,18 @@
 #include "WheeledVehiclePawn.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h" 
+#include "Components/TimelineComponent.h"
 #include "Tank.generated.h"
 
 
 class UChaosWheeledVehicleMovementComponent;
 class ATankShell;
 class USkeletalMeshComponent;
+class UNiagaraSystem;
+class USoundBase;
+class USoundAttenuation;
+class UForceFeedbackEffect;
+class UCurveFloat;
 
 /**
  * 
@@ -72,18 +78,51 @@ protected:
 
 
 
-
+	//Declare the VehcileMoveComponent
 	UPROPERTY(BlueprintReadWrite)
 	UChaosWheeledVehicleMovementComponent* VehicleMoveComponent;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool TankFired = true;
+
+	//Declare the screen shake
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UCameraShakeBase>TankShootCameraShake;
 
+	//Declare the projectile to shoot
 	UPROPERTY(EditAnywhere)
 	//ATankShell* TankShellProjectile;
 	TSubclassOf<ATankShell> TankShellProjectile;
 
+	//Declare the Tanks Skeleton Mesh
 	UPROPERTY()
 	USkeletalMeshComponent* TankSkeletonMesh;
 
+	//Declare NiagaraEffect to be set in editor
+	UPROPERTY(EditAnywhere, Category = "VFX")
+	class UNiagaraSystem* ShootingVFX;
+
+	//Declare ExplosionSound to be set in editor
+	UPROPERTY(EditAnywhere, Category = "Sounds")
+	class USoundBase* TankShootSound;
+
+	//Declare ExplosionSound to be set in editor
+	UPROPERTY(EditAnywhere, Category = "Sounds")
+	class USoundAttenuation* TankShootAttenuation;
+
+	//Declare ForceFeedback to be set in editor
+	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
+	class UForceFeedbackEffect* ForceFeedbackEffect;
+
+	//Declare the Tanks shooting timeline
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tank Shoot Curve")
+	UCurveFloat* TankShootingCurvefloat;
+
+	FTimeline TankShootingTimeLine;
+
+	UFUNCTION()
+	void TankShootTimeLineUpdate(float Alpha);
+
+	UFUNCTION()
+	void TankShootTimeLineFinished();
 };

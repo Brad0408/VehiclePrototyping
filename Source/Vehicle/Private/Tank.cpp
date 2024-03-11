@@ -7,6 +7,10 @@
 #include "ChaosVehicleMovementComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "TankShell.h"
+#include "NiagaraFunctionLibrary.h"
 
 
 
@@ -26,14 +30,26 @@ void ATank::BeginPlay()
 {
 	Super::BeginPlay();
 
+    //FOnTimelineFloat ShootingProgressUpdate;
+    //ShootingProgressUpdate.BindUFunction(this, FName("TankShootTimeLineUpdate"));
 
-    if (TankSkeletonMesh)
-    {
-        if (GEngine)
-        {
-            GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("Skeleton Component: %s")));
-        }
-    }
+    //FOnTimelineEvent ShootingFinishedEvent;
+    //ShootingFinishedEvent.BindUFunction(this, FName("TankShootTimeLineFinished"));
+
+    //TankShootingTimeLine.AddInterpFloat(TankShootingCurvefloat, ShootingProgressUpdate);
+    //TankShootingTimeLine.SetTimelineFinishedFunc(ShootingFinishedEvent);
+
+
+
+    //if (TankSkeletonMesh)
+    //{
+    //    if (GEngine)
+    //    {
+    //        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("Skeleton Component: %s")));
+    //    }
+    //}
+
+
 
 }
 
@@ -144,24 +160,108 @@ void ATank::HandBreakEvent(const FInputActionValue& Value, ETriggerEvent Trigger
     }
 }
 
+void ATank::TankShootTimeLineUpdate(float Alpha)
+{
+    GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("UPDATE IS CALLED SET TO FALSE")));
+    TankFired = false;
+
+}
+
+void ATank::TankShootTimeLineFinished()
+{
+    GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED WAS CALLED")));
+    FLatentActionInfo LatentInfo;
+    UKismetSystemLibrary::Delay(GetWorld(), 1.2f, LatentInfo);
+    TankFired = true;
+    GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED CALLED SET TO TRUE")));
+}
+
 
 void ATank::ShootingEvent(const FInputActionValue& Value)
 {
-    bool Fired = true;
 
-    if (Fired)
+    if (TankFired == true)
     {   
-        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT(" Fired ")));
+        //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT(" Fired ")));
         
+        //Get World for spawning actors
         UWorld* World = GetWorld();
 
         if (TankShootCameraShake)
         {
             FVector EpicenterValue = GetActorLocation();
 
+            //Makes the camera shake when tank fires
             UGameplayStatics::PlayWorldCameraShake(GetWorld(), TankShootCameraShake, EpicenterValue, 0.0f, 10000.0f, 1.0f, false);
         }
- 
-        //TankShellProjectile = World->SpawnActor<ATankShell>();
+        
+        //Get the transform point of main_cannon, which is located at the end of the tanks main turret barrel
+        FTransform TankShootPointTransform = TankSkeletonMesh->GetSocketTransform("main_cannon", RTS_World);
+
+        FVector TankShootPointLocation = TankShootPointTransform.GetLocation();
+        FRotator TankShootPointRotation = TankShootPointTransform.Rotator();
+
+        //Check if TankShellProjectile was set in the editor
+        if (TankShellProjectile)
+        {
+            //Spawn the tank projectile at the end of the tank barrel which is set in the editor and store this here
+            AActor* SpawnedTankShellProjectile = World->SpawnActor<ATankShell>(TankShellProjectile, TankShootPointTransform);
+        }
+
+
+        //Check VFX is assigned
+        if (ShootingVFX)
+        {
+            //Play VFX at location
+            UNiagaraFunctionLibrary::SpawnSystemAttached(ShootingVFX, TankSkeletonMesh, "main_cannon", TankShootPointLocation, TankShootPointRotation, EAttachLocation::KeepWorldPosition, false, true, ENCPoolMethod::None, true);;
+        }
+
+
+        //Check sound is assigned
+        if (TankShootSound)
+        {
+            //Play sound cue at location
+            UGameplayStatics::PlaySoundAtLocation(this, TankShootSound, GetActorLocation(), 1.0f, 1.0f, 0.0f, TankShootAttenuation);
+        }
+
+        //Check FF is assigned
+        if (ForceFeedbackEffect)
+        {
+            //Get ref to player controller
+            APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+
+
+            //If PC is valid
+            if (PlayerController)
+            {
+                //Create FFbackparameter struct ref
+                FForceFeedbackParameters ForceFeedbackParams;
+
+                //Set the variables in struct
+                ForceFeedbackParams.Tag = FName(TEXT(""));
+                ForceFeedbackParams.bLooping = false;
+
+                //Play force feedback using struct data and effect set in editor
+                PlayerController->ClientPlayForceFeedback(ForceFeedbackEffect, ForceFeedbackParams);
+
+            }
+
+        }
+
+        //Get Transform of the tanks turret
+        FTransform TankTurretTansform = TankSkeletonMesh->GetSocketTransform("turret_jnt", RTS_World);
+
+        //Set the the direction recoil of the turret - Give the effect of the turret going back into itself when it fires
+        FVector TurretRecoilDirection(0.0f, -50.0f, 0.0f);
+
+        //Calculate a torque for next step
+        FVector TankTurretRecoilTorque = UKismetMathLibrary::TransformDirection(TankTurretTansform, TurretRecoilDirection);
+
+        //Actually update the visuals of the tank with the recoil effect
+        TankSkeletonMesh->AddTorqueInRadians(TankTurretRecoilTorque, "cog_jnt", true);
+
+
+        //TankShootingTimeLine.PlayFromStart();
     }
 }
