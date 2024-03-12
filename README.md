@@ -25,4 +25,4 @@ The tank is capable of -
 - Toggle camera in 3rd or 1st person
 - Also controller support that provides haptic feedback when driving and feeling explosions from land mines/tank shells
 
-All visual and audio assets for the tank were sourced online, I just made it all work
+All visual and audio assets for the tank were sourced online
