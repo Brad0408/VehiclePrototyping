@@ -14,6 +14,8 @@ FOR C++ (Go to Source -> Vehicle -> Private)
 
 Here is the tank working ! - https://youtu.be/kPaiKcoHShI
 
+Here is also a development playlist of testing newly implemented mechanics - https://www.youtube.com/playlist?list=PLYBjgWvMiW73fJYIZKgGRJQZQmpUzUtOW
+
 
 The tank is capable of -
 
