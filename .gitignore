@@ -75,3 +75,6 @@ Platforms/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+#intellij configs
+.idea/
