@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "WheeledVehiclePawn.h"
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h" 
 #include "Components/TimelineComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Tank.generated.h"
 
 
@@ -50,15 +50,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	TObjectPtr<UInputAction> Steering;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	TObjectPtr<UInputAction> ScrollIn;
+
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//Setup the player input componenet
-	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent);
+	//Setup the player input component
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	//Call for Lookingaround (Yaw)
+	//Call for Looking Around (Yaw)
 	void LookAroundEvent(const FInputActionValue& Value);
 
 	//Call for up and down looking (Pitch)
@@ -70,7 +73,7 @@ protected:
 	//Call for breaking
 	void BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEventType);
 
-	//Call for using handbreak
+	//Call for using Hand break
 	void HandBreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEventType);
 
 	//Call for shooting
@@ -79,9 +82,12 @@ protected:
 	//Call for steering
 	void SteeringEvent(const FInputActionValue& Value);
 
+	//Call for camera zooming in
+	void CameraZoomInEvent(const FInputActionValue& Value);
 
 
-	//Declare the VehcileMoveComponent
+
+	//Declare the VehicleMoveComponent
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UChaosWheeledVehicleMovementComponent> VehicleMoveComponent;
 
@@ -94,12 +100,15 @@ protected:
 
 	//Declare the projectile to shoot
 	UPROPERTY(EditAnywhere)
-	//ATankShell* TankShellProjectile;
 	TSubclassOf<ATankShell> TankShellProjectile;
 
 	//Declare the Tanks Skeleton Mesh
 	UPROPERTY();
 	TObjectPtr<USkeletalMeshComponent> TankSkeletonMesh;
+
+	//Declare the tanks spring arm
+	UPROPERTY()
+	TObjectPtr<USpringArmComponent> TankBackSpringArm;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
@@ -116,6 +125,8 @@ protected:
 	//Declare ForceFeedback to be set in editor
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
 	TObjectPtr<UForceFeedbackEffect> ForceFeedbackEffect;
+
+	
 
 
 	//Declare the Tanks shooting timeline

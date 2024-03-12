@@ -24,7 +24,7 @@ void ATankShell::BeginPlay()
 {   
     Super::BeginPlay();
 
-	//Find the componenet that was already added to the blueprint
+	//Find the component that was already added to the blueprint
     ProjectileMovementComponent = FindComponentByClass<UProjectileMovementComponent>();
 
 	//If the component is found
@@ -36,7 +36,7 @@ void ATankShell::BeginPlay()
     else
     {
         //Projectile Movement Component is not found
-        UE_LOG(LogTemp, Warning, TEXT("Projectile Movement Component not found in %s"), *GetName());
+        UE_LOG(LogTemp, Warning, TEXT("Projectile Movement Component not found in"));
     }
 
 }
@@ -101,10 +101,10 @@ void ATankShell::OnProjectileStop(const FHitResult& ImpactResult)
 	}
 
 
-	//Check if the hit componenet is valid
+	//Check if the hit component is valid
 	if (HitComponent)
 	{
-		//On the hit component apply an impluse to it
+		//On the hit component apply an impulse to it
 		HitComponent->AddRadialImpulse(ImpactPoint, DamageOuterRadius, RadialStrength , ERadialImpulseFalloff::RIF_Constant, true);
 
 		//Destroy after impulse
@@ -112,7 +112,7 @@ void ATankShell::OnProjectileStop(const FHitResult& ImpactResult)
 	}
 	else
 	{
-		//if false just destory itself
+		//if false just destroy itself
 		Destroy();
 	}
     

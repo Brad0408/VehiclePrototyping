@@ -5,6 +5,7 @@
 #include "Tank.h"
 #include "ChaosVehicleMovementComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
+#include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -21,7 +22,7 @@ ATank::ATank()
 
     TankSkeletonMesh = FindComponentByClass<USkeletalMeshComponent>();
     
-
+    TankBackSpringArm = FindComponentByClass<USpringArmComponent>();
 }
 
 
@@ -40,13 +41,17 @@ void ATank::BeginPlay()
 
 
 
-    //if (TankSkeletonMesh)
-    //{
-    //    if (GEngine)
-    //    {
-    //        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("Skeleton Component: %s")));
-    //    }
-    //}
+    if (TankBackSpringArm)
+    {
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("Skeleton Component: %s")));
+        }
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("NO CAMERA %s")));
+    }
 
 
 
@@ -54,9 +59,8 @@ void ATank::BeginPlay()
 
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-
-    TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-    if (EnhancedInputComponent)
+    
+    if (TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {   
         //Set in all these IA in the editor
         if (LookAround)
@@ -93,17 +97,23 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
             EnhancedInputComponent->BindAction(HandBreak, ETriggerEvent::Completed, this, &ATank::HandBreakEvent, ETriggerEvent::Completed);
         }
 
+        if (Shooting)
+        {
+            //Call Shooting
+            EnhancedInputComponent->BindAction(Shooting, ETriggerEvent::Triggered, this, &ATank::ShootingEvent);
+        }
+
         if (Steering)
         {
-            //Call HandBreak
+            //Call Steering
             EnhancedInputComponent->BindAction(Steering, ETriggerEvent::Triggered, this, &ATank::SteeringEvent);
             EnhancedInputComponent->BindAction(Steering, ETriggerEvent::Completed, this, &ATank::SteeringEvent);
         }
 
-        if (Shooting)
+        if (ScrollIn)
         {
-            //Call HandBreak
-            EnhancedInputComponent->BindAction(Shooting, ETriggerEvent::Triggered, this, &ATank::ShootingEvent);
+            //Call Camera Scroll In
+            EnhancedInputComponent->BindAction(ScrollIn, ETriggerEvent::Triggered, this, &ATank::CameraZoomInEvent);
         }
     }
 }
@@ -140,7 +150,7 @@ void ATank::ThrottleEvent(const FInputActionValue& Value)
 //Applies Break to VehicleMovementComponent
 void ATank::BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEventType)
 {
-    //If its being trigged set to the actual value of it
+    //If its being triggered set to the actual value of it
     if (TriggerEventType == ETriggerEvent::Triggered)
     {
         float BreakValue = Value.Get<float>();
@@ -184,14 +194,6 @@ void ATank::TankShootTimeLineFinished()
     UKismetSystemLibrary::Delay(GetWorld(), 1.2f, LatentInfo);
     TankFired = true;
     GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED CALLED SET TO TRUE")));
-}
-
-//Steers the Tank
-void ATank::SteeringEvent(const FInputActionValue& Value)
-{
-    float SteeringValue = Value.Get<float>();
-
-    VehicleMoveComponent->SetYawInput(SteeringValue);
 }
 
 
@@ -246,13 +248,8 @@ void ATank::ShootingEvent(const FInputActionValue& Value)
         //Check FF is assigned
         if (ForceFeedbackEffect)
         {
-            //Get ref to player controller
-            APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-
-
-
             //If PC is valid
-            if (PlayerController)
+            if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0))
             {
                 //Create FFbackparameter struct ref
                 FForceFeedbackParameters ForceFeedbackParams;
@@ -269,13 +266,13 @@ void ATank::ShootingEvent(const FInputActionValue& Value)
         }
 
         //Get Transform of the tanks turret
-        FTransform TankTurretTansform = TankSkeletonMesh->GetSocketTransform("turret_jnt", RTS_World);
+        FTransform TankTurretTransform = TankSkeletonMesh->GetSocketTransform("turret_jnt", RTS_World);
 
         //Set the the direction recoil of the turret - Give the effect of the turret going back into itself when it fires
         FVector TurretRecoilDirection(0.0f, -50.0f, 0.0f);
 
         //Calculate a torque
-        FVector TankTurretRecoilTorque = UKismetMathLibrary::TransformDirection(TankTurretTansform, TurretRecoilDirection);
+        FVector TankTurretRecoilTorque = UKismetMathLibrary::TransformDirection(TankTurretTransform, TurretRecoilDirection);
 
         //Actually update the visuals of the tank with the recoil effect
         TankSkeletonMesh->AddTorqueInRadians(TankTurretRecoilTorque, "cog_jnt", true);
@@ -283,4 +280,28 @@ void ATank::ShootingEvent(const FInputActionValue& Value)
 
         //TankShootingTimeLine.PlayFromStart();
     }
+}
+
+
+//Steers the Tank
+void ATank::SteeringEvent(const FInputActionValue& Value)
+{
+    float SteeringValue = Value.Get<float>();
+
+    VehicleMoveComponent->SetYawInput(SteeringValue);
+}
+
+void ATank::CameraZoomInEvent(const FInputActionValue& Value)
+{
+    //Get the arm length
+    float TargetArmLength = TankBackSpringArm->TargetArmLength;
+
+    // Decrease the arm length by 100 units
+    TargetArmLength -= 100.0f;
+
+    // Clamp the arm length between 800 and 2500
+    TargetArmLength = FMath::Clamp(TargetArmLength, 800.0f, 2500.0f);
+
+    // Set the new arm length
+    TankBackSpringArm->TargetArmLength;
 }
