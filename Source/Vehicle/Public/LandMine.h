@@ -6,10 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "LandMine.generated.h"
 
-
 class UBoxComponent;
 class UNiagaraSystem;
-class USoundBase;
 class UForceFeedbackEffect;
 
 UCLASS()
@@ -32,19 +30,19 @@ protected:
 
 	//Declare BoxCollision to be set in editor
 	UPROPERTY(EditAnywhere);
-	UBoxComponent* BoxCollision;
+	TObjectPtr<UBoxComponent> BoxCollision;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
-	class UNiagaraSystem* NiagaraEffect;
+	TObjectPtr<UNiagaraSystem> ExplosionEffect;
 
 	//Declare ExplosionSound to be set in editor
 	UPROPERTY(EditAnywhere, Category = "Sounds")
-	class USoundBase* ExplosionSound;
+	TObjectPtr<USoundBase> ExplosionSound;
 
 	//Declare ForceFeedback to be set in editor
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
-	class UForceFeedbackEffect* ForceFeedbackEffect;
+	TObjectPtr<UForceFeedbackEffect> ForceFeedbackEffect;
 
 	//Overlap Event Function
 	UFUNCTION()

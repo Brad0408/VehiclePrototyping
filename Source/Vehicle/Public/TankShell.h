@@ -8,7 +8,6 @@
 
 class UProjectileMovementComponent;
 class UNiagaraSystem;
-class USoundBase;
 class UForceFeedbackEffect;
 
 //Potential implementation in c++ of FS_MasterField
@@ -24,20 +23,20 @@ public:
 	ATankShell();
 
 	//Create tank shell damage and radius values
-	UPROPERTY(EditAnywhere, Category = "Damage Values")
+	UPROPERTY(EditDefaultsOnly, Category = "Damage Values")
 	float BaseDamage;
 
-	UPROPERTY(EditAnywhere, Category = "Damage Values")
+	UPROPERTY(EditDefaultsOnly, Category = "Damage Values")
 	float MinimumDamage;
 
-	UPROPERTY(EditAnywhere, Category = "Damage Values")
+	UPROPERTY(EditDefaultsOnly, Category = "Damage Values")
 	float DamageInnerRadius;
 
-	UPROPERTY(EditAnywhere, Category = "Damage Values")
+	UPROPERTY(EditDefaultsOnly, Category = "Damage Values")
 	float DamageOuterRadius;
 
 	//Impulse strength when impulse is applied
-	UPROPERTY(EditAnywhere, Category = "Damage Values")
+	UPROPERTY(EditDefaultsOnly, Category = "Damage Values")
 	float RadialStrength;
 
 
@@ -47,19 +46,19 @@ protected:
 
 	//Declare Reference to Projectile Movement Component
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
-	UProjectileMovementComponent* ProjectileMovementComponent;
+	TObjectPtr<UProjectileMovementComponent> ProjectileMovementComponent;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
-	class UNiagaraSystem* NiagaraEffect;
+	TObjectPtr<UNiagaraSystem> ExplosionEffect;
 
 	//Declare ExplosionSound to be set in editor
 	UPROPERTY(EditAnywhere, Category = "Sounds")
-	class USoundBase* ExplosionSound;
+	TObjectPtr<USoundBase> ExplosionSound;
 
 	//Declare ForceFeedback to be set in editor
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
-	class UForceFeedbackEffect* ForceFeedbackEffect;
+	TObjectPtr<UForceFeedbackEffect> ForceFeedbackEffect;
 
 	//OnStop Function
 	UFUNCTION()

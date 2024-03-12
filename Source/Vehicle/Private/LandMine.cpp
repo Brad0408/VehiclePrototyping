@@ -7,13 +7,9 @@
 #include "NiagaraFunctionLibrary.h"
 
 
-
-
 // Sets default values
 ALandMine::ALandMine()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
 
 	//Actually Create BoxCol
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BOX COLLIDER"));
@@ -58,10 +54,10 @@ void ALandMine::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 
 
 	//Check VFX is assigned
-	if (NiagaraEffect)
+	if (ExplosionEffect)
 	{
 		//Play VFX at location
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraEffect, SpawnLocation);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, SpawnLocation);
 	}
 
 	//Check FF is assigned
@@ -90,7 +86,7 @@ void ALandMine::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 	}
 
 
-
+	//Get rid of the mine at the end
 	Destroy();
 }
 

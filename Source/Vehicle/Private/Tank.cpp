@@ -3,7 +3,6 @@
 
 
 #include "Tank.h"
-
 #include "ChaosVehicleMovementComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -56,7 +55,7 @@ void ATank::BeginPlay()
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 
-    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+    TObjectPtr<UEnhancedInputComponent> EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
     if (EnhancedInputComponent)
     {   
         //Set in all these IA in the editor
@@ -94,8 +93,15 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
             EnhancedInputComponent->BindAction(HandBreak, ETriggerEvent::Completed, this, &ATank::HandBreakEvent, ETriggerEvent::Completed);
         }
 
+        if (Steering)
+        {
+            //Call HandBreak
+            EnhancedInputComponent->BindAction(Steering, ETriggerEvent::Triggered, this, &ATank::SteeringEvent);
+            EnhancedInputComponent->BindAction(Steering, ETriggerEvent::Completed, this, &ATank::SteeringEvent);
+        }
+
         if (Shooting)
-        {   
+        {
             //Call HandBreak
             EnhancedInputComponent->BindAction(Shooting, ETriggerEvent::Triggered, this, &ATank::ShootingEvent);
         }
@@ -105,9 +111,9 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 //Adds Yaw 
 void ATank::LookAroundEvent(const FInputActionValue &Value)
 {	
-	float val = Value.Get<float>();
+	float LookAroundValue = Value.Get<float>();
 
-	AddControllerYawInput(val);
+	AddControllerYawInput(LookAroundValue);
 }
 
 
@@ -116,9 +122,9 @@ void ATank::LookAroundEvent(const FInputActionValue &Value)
 void ATank::LookUpAndDownEvent(const FInputActionValue& Value)
 {
     //Inverse to work properly
-    float val = -1.0f * Value.Get<float>();
+    float LookUpAndDownValue = -1.0f * Value.Get<float>();
 
-    AddControllerPitchInput(val);
+    AddControllerPitchInput(LookUpAndDownValue);
 }
 
 
@@ -134,6 +140,7 @@ void ATank::ThrottleEvent(const FInputActionValue& Value)
 //Applies Break to VehicleMovementComponent
 void ATank::BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEventType)
 {
+    //If its being trigged set to the actual value of it
     if (TriggerEventType == ETriggerEvent::Triggered)
     {
         float BreakValue = Value.Get<float>();
@@ -142,6 +149,7 @@ void ATank::BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEven
     }
     else
     {
+        //Basically for EventCompleted, just fully break the tank
         VehicleMoveComponent->SetBrakeInput(0.0f);
     }
 }
@@ -150,12 +158,14 @@ void ATank::BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEven
 //Applies Break to VehicleMovementComponent
 void ATank::HandBreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEventType)
 {
+    //If triggered set hand break true
     if (TriggerEventType == ETriggerEvent::Triggered)
     {
         VehicleMoveComponent->SetHandbrakeInput(true);
     }
     else
     {
+        //Any other input Enum set it to false
         VehicleMoveComponent->SetHandbrakeInput(false);
     }
 }
@@ -176,7 +186,16 @@ void ATank::TankShootTimeLineFinished()
     GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED CALLED SET TO TRUE")));
 }
 
+//Steers the Tank
+void ATank::SteeringEvent(const FInputActionValue& Value)
+{
+    float SteeringValue = Value.Get<float>();
 
+    VehicleMoveComponent->SetYawInput(SteeringValue);
+}
+
+
+//Deals with Shooting TankShells
 void ATank::ShootingEvent(const FInputActionValue& Value)
 {
 
@@ -255,7 +274,7 @@ void ATank::ShootingEvent(const FInputActionValue& Value)
         //Set the the direction recoil of the turret - Give the effect of the turret going back into itself when it fires
         FVector TurretRecoilDirection(0.0f, -50.0f, 0.0f);
 
-        //Calculate a torque for next step
+        //Calculate a torque
         FVector TankTurretRecoilTorque = UKismetMathLibrary::TransformDirection(TankTurretTansform, TurretRecoilDirection);
 
         //Actually update the visuals of the tank with the recoil effect

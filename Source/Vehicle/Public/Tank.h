@@ -12,10 +12,7 @@
 
 class UChaosWheeledVehicleMovementComponent;
 class ATankShell;
-class USkeletalMeshComponent;
 class UNiagaraSystem;
-class USoundBase;
-class USoundAttenuation;
 class UForceFeedbackEffect;
 class UCurveFloat;
 
@@ -33,22 +30,25 @@ public:
 
 	//Several IA to be set in editor - idk accessing it from IMC, which is set in the player controller blueprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* LookAround;
+	TObjectPtr<UInputAction> LookAround;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* LookUpAndDown;
+	TObjectPtr<UInputAction> LookUpAndDown;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* Throttle;
+	TObjectPtr<UInputAction> Throttle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* Break;
+	TObjectPtr<UInputAction> Break;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* HandBreak;
+	TObjectPtr<UInputAction> HandBreak;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* Shooting;
+	TObjectPtr<UInputAction> Shooting;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	TObjectPtr<UInputAction> Steering;
 
 
 protected:
@@ -76,11 +76,14 @@ protected:
 	//Call for shooting
 	void ShootingEvent(const FInputActionValue& Value);
 
+	//Call for steering
+	void SteeringEvent(const FInputActionValue& Value);
+
 
 
 	//Declare the VehcileMoveComponent
 	UPROPERTY(BlueprintReadWrite)
-	UChaosWheeledVehicleMovementComponent* VehicleMoveComponent;
+	TObjectPtr<UChaosWheeledVehicleMovementComponent> VehicleMoveComponent;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool TankFired = true;
@@ -95,24 +98,25 @@ protected:
 	TSubclassOf<ATankShell> TankShellProjectile;
 
 	//Declare the Tanks Skeleton Mesh
-	UPROPERTY()
-	USkeletalMeshComponent* TankSkeletonMesh;
+	UPROPERTY();
+	TObjectPtr<USkeletalMeshComponent> TankSkeletonMesh;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
-	class UNiagaraSystem* ShootingVFX;
+	TObjectPtr<UNiagaraSystem> ShootingVFX;
 
 	//Declare ExplosionSound to be set in editor
 	UPROPERTY(EditAnywhere, Category = "Sounds")
-	class USoundBase* TankShootSound;
+	TObjectPtr<USoundBase> TankShootSound;
 
 	//Declare ExplosionSound to be set in editor
 	UPROPERTY(EditAnywhere, Category = "Sounds")
-	class USoundAttenuation* TankShootAttenuation;
+	TObjectPtr<USoundAttenuation> TankShootAttenuation;
 
 	//Declare ForceFeedback to be set in editor
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
-	class UForceFeedbackEffect* ForceFeedbackEffect;
+	TObjectPtr<UForceFeedbackEffect> ForceFeedbackEffect;
+
 
 	//Declare the Tanks shooting timeline
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tank Shoot Curve")
@@ -125,4 +129,5 @@ protected:
 
 	UFUNCTION()
 	void TankShootTimeLineFinished();
+
 };

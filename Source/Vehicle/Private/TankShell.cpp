@@ -10,8 +10,6 @@
 // Sets default values
 ATankShell::ATankShell()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
 
 	//Assign Default Values
 	BaseDamage = 100.0f;
@@ -29,7 +27,7 @@ void ATankShell::BeginPlay()
 	//Find the componenet that was already added to the blueprint
     ProjectileMovementComponent = FindComponentByClass<UProjectileMovementComponent>();
 
-	//It the component is found
+	//If the component is found
     if (ProjectileMovementComponent)
     {
 		//Call stop function when it stops
@@ -37,7 +35,7 @@ void ATankShell::BeginPlay()
     }
     else
     {
-        // Handle case where Projectile Movement Component is not found
+        //Projectile Movement Component is not found
         UE_LOG(LogTemp, Warning, TEXT("Projectile Movement Component not found in %s"), *GetName());
     }
 
@@ -56,8 +54,7 @@ void ATankShell::OnProjectileStop(const FHitResult& ImpactResult)
 	FRotator RotationFromNormal = FRotationMatrix::MakeFromZ(ImpactNormal).Rotator();
 
 	// Retrieve the hit component from the ImpactResults
-	UPrimitiveComponent* HitComponent = ImpactResult.GetComponent();
-
+	TObjectPtr<UPrimitiveComponent> HitComponent = ImpactResult.GetComponent();
 
 	//Check sound is assigned
 	if (ExplosionSound)
@@ -68,10 +65,10 @@ void ATankShell::OnProjectileStop(const FHitResult& ImpactResult)
 
 
 	//Check VFX is assigned
-	if (NiagaraEffect)
+	if (ExplosionEffect)
 	{
 		//Play VFX at location
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), NiagaraEffect, ImpactPoint, RotationFromNormal);
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, ImpactPoint, RotationFromNormal);
 	}
 
 	//Applies Radial Damage
