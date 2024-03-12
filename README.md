@@ -2,7 +2,7 @@ Creating a tank vehcile within Unreal Engine
 
 First time looking a Unreal's VehiclePawns and ChoasWheels/Plugins.
 
-Also first time refactoring funcionality into C++ after getting it to work within a blueprint.
+Also first time refactoring functionality into C++ after getting it to work within a blueprint.
 
 
 FOR C++ (Go to Source -> Vehicle -> Private)
@@ -24,3 +24,5 @@ The tank is capable of -
 - The tank will blow up at 0 HP
 - Toggle camera in 3rd or 1st person
 - Also controller support that provides haptic feedback when driving and feeling explosions from land mines/tank shells
+
+All visual and audio assets for the tank were sourced online, I just made it all work
