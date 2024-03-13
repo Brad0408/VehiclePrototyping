@@ -59,16 +59,15 @@ void ATank::BeginPlay()
             TankBackSpringArm = Cast<USpringArmComponent>(ChildComponent);
             if (TankBackSpringArm)
             {
-                GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back spring found")));
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back spring found")));
                 // Found a spring arm component, now iterate through its attached children
                 for (USceneComponent* SpringArmChild : TankBackSpringArm->GetAttachChildren())
                 {
  
                     // Check if the child component is a camera component
-                    UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild);
-                    if (CameraComponent)
+                    if (UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild))
                     {
-                        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back camera found")));
+                        //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back camera found")));
                         //Set the found camera to the back camera
                         BackCamera = CameraComponent;
 
@@ -88,16 +87,15 @@ void ATank::BeginPlay()
             TankFrontSpringArm = Cast<USpringArmComponent>(ChildComponent);
             if (TankFrontSpringArm)
             {
-                GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front spring found")));
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front spring found")));
                 // Found a spring arm component, now iterate through its attached children
                 for (USceneComponent* SpringArmChild : TankFrontSpringArm->GetAttachChildren())
                 {
 
                     // Check if the child component is a camera component
-                    UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild);
-                    if (CameraComponent)
+                    if (UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild))
                     {
-                        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front camera found")));
+                        //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front camera found")));
                         //Set the found camera to the back camera
                         FrontCamera = CameraComponent;
 
@@ -120,6 +118,23 @@ void ATank::BeginPlay()
     //    }
     //}
 
+
+
+}
+
+void ATank::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    //Create an array to store all the tank wheels
+    TArray<UChaosVehicleWheel*> TankWheels;
+
+    //Get the tank wheels and iterate through each one
+    for (TObjectPtr<UChaosVehicleWheel>& WheelPtr : VehicleMoveComponent->Wheels)
+    {
+        //Add each returned wheel to the array
+        TankWheels.Add(WheelPtr.Get());
+    }
 
 
 }
@@ -223,6 +238,9 @@ void ATank::ThrottleEvent(const FInputActionValue& Value)
     float ThrottleValue = Value.Get<float>();
 
     VehicleMoveComponent->SetThrottleInput(ThrottleValue);
+
+    //Sets speed limit
+    SetMaxForwardSpeed();
 }
 
 
@@ -241,6 +259,9 @@ void ATank::BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEven
         //Basically for EventCompleted, just fully break the tank
         VehicleMoveComponent->SetBrakeInput(0.0f);
     }
+
+    //Sets speed limit
+    SetMaxReverseSpeed();
 }
 
 
@@ -274,7 +295,6 @@ void ATank::TankShootTimeLineFinished()
     bTankFired = true;
     GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED CALLED SET TO TRUE")));
 }
-
 
 //Deals with Shooting TankShells
 void ATank::ShootingEvent(const FInputActionValue& Value)
@@ -410,16 +430,16 @@ void ATank::CameraZoomOutEvent(const FInputActionValue& Value)
 //Toggles the camera between 1st and 3rd person
 void ATank::CameraToggleEvent(const FInputActionValue& Value)
 {
-    // Deactivate both cameras
+    //Deactivate both cameras
     FrontCamera->Deactivate();
     BackCamera->Deactivate();
 
 
-    //Reclipating the flip flop node
-    // Toggle the camera state
+    //Replicating the flip flop node
+    //Toggle the camera state
     bIsBackCameraActive = !bIsBackCameraActive;
 
-    // Activate the appropriate camera based on the state
+    //Activate the appropriate camera based on the state
     if (bIsBackCameraActive)
     {
         BackCamera->Activate();
@@ -430,5 +450,28 @@ void ATank::CameraToggleEvent(const FInputActionValue& Value)
     }
 }
 
+//Stops the tank from going over 50 km/h
+void ATank::SetMaxForwardSpeed()
+{
+    float TankForwardSpeed = VehicleMoveComponent->GetForwardSpeed();
+
+    if(TankForwardSpeed * 0.036 > SpeedLimit)
+    {
+        VehicleMoveComponent->SetThrottleInput(0.0);
+    }
+}
+
+//Stop the tank from going over 50 km/h when reversing
+void ATank::SetMaxReverseSpeed()
+{
+    float TankForwardSpeed = VehicleMoveComponent->GetForwardSpeed();
+
+    float TankBackSpeed = TankForwardSpeed * -1.0;
+    
+    if(TankBackSpeed * 0.036 > SpeedLimit)
+    {
+        VehicleMoveComponent->SetBrakeInput(0.0);
+    }
+}
 
 

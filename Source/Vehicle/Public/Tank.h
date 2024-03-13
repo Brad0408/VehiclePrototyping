@@ -64,6 +64,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	//Setup the player input component
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -101,11 +103,17 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UChaosWheeledVehicleMovementComponent> VehicleMoveComponent;
 
+	//Declare the tanks shooting state
 	UPROPERTY(BlueprintReadWrite)
 	bool bTankFired = true;
 
+	//Declare which camera is active
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsBackCameraActive = true;
+
+	//Declare the tanks speed limit
+	UPROPERTY(BlueprintReadWrite)
+	float SpeedLimit = 50.0f;
 
 	//Declare the screen shake
 	UPROPERTY(EditAnywhere)
@@ -163,5 +171,13 @@ protected:
 
 	UFUNCTION()
 	void TankShootTimeLineFinished();
+
+	//Declare function to set the tanks max speed
+	UFUNCTION()
+	void SetMaxForwardSpeed();
+
+	//Declare function to set the tanks max speed
+	UFUNCTION()
+	void SetMaxReverseSpeed();
 
 };
