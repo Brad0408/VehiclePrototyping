@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h" 
 #include "Components/TimelineComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 #include "Tank.generated.h"
 
 
@@ -53,6 +54,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
 	TObjectPtr<UInputAction> ScrollIn;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	TObjectPtr<UInputAction> ScrollOut;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input)
+	TObjectPtr<UInputAction> ToggleCamera;
 
 protected:
 	// Called when the game starts or when spawned
@@ -85,14 +91,21 @@ protected:
 	//Call for camera zooming in
 	void CameraZoomInEvent(const FInputActionValue& Value);
 
+	//Call for camera zooming out
+	void CameraZoomOutEvent(const FInputActionValue& Value);
 
+	//Call to toggle between 1st and 3rd person camera
+	void CameraToggleEvent(const FInputActionValue& Value);
 
 	//Declare the VehicleMoveComponent
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UChaosWheeledVehicleMovementComponent> VehicleMoveComponent;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool TankFired = true;
+	bool bTankFired = true;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsBackCameraActive = true;
 
 	//Declare the screen shake
 	UPROPERTY(EditAnywhere)
@@ -108,7 +121,17 @@ protected:
 
 	//Declare the tanks spring arm
 	UPROPERTY()
+	TObjectPtr<USpringArmComponent> TankFrontSpringArm;
+
+	//Declare the tanks spring arm
+	UPROPERTY()
 	TObjectPtr<USpringArmComponent> TankBackSpringArm;
+
+	//Declare the 1st person front camera
+	TObjectPtr<UCameraComponent> FrontCamera;
+
+	//Declare the 3rd person back camera
+	TObjectPtr<UCameraComponent> BackCamera;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")

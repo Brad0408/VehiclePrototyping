@@ -17,12 +17,13 @@
 ATank::ATank()
 {
     
-   //VehicleMoveComponent = Cast<UChaosWheeledVehicleMovementComponent>(GetMovementComponent());
+    //VehicleMoveComponent = Cast<UChaosWheeledVehicleMovementComponent>(GetMovementComponent());
     VehicleMoveComponent = FindComponentByClass<UChaosWheeledVehicleMovementComponent>();
+    
 
     TankSkeletonMesh = FindComponentByClass<USkeletalMeshComponent>();
     
-    TankBackSpringArm = FindComponentByClass<USpringArmComponent>();
+  
 }
 
 
@@ -40,18 +41,84 @@ void ATank::BeginPlay()
     //TankShootingTimeLine.SetTimelineFinishedFunc(ShootingFinishedEvent);
 
 
+    // Iterate through all attached child components of TankSkeletonMesh
+    for (USceneComponent* ChildComponent : TankSkeletonMesh->GetAttachChildren())
+    {
 
-    if (TankBackSpringArm)
-    {
-        if (GEngine)
+        // Name of the spring arm you want to find
+        FName BackSpringArmNameToFind(TEXT("SpringArm"));
+        FName FrontSpringArmNameToFind(TEXT("SpringArm1"));
+
+
+        /////////////For find the back spring arm and the camera attached to that spring arm/////////////////
+        // Check if the child component's name matches the desired spring arm name
+        if (ChildComponent->GetName() == BackSpringArmNameToFind.ToString())
         {
-            GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("Skeleton Component: %s")));
+
+            // Found the spring arm by name
+            TankBackSpringArm = Cast<USpringArmComponent>(ChildComponent);
+            if (TankBackSpringArm)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back spring found")));
+                // Found a spring arm component, now iterate through its attached children
+                for (USceneComponent* SpringArmChild : TankBackSpringArm->GetAttachChildren())
+                {
+ 
+                    // Check if the child component is a camera component
+                    UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild);
+                    if (CameraComponent)
+                    {
+                        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back camera found")));
+                        //Set the found camera to the back camera
+                        BackCamera = CameraComponent;
+
+                        break;
+                    }
+                }
+            }
         }
+
+
+        /////////////For find the front spring arm and the camera attached to that spring arm/////////////////
+        // Check if the child component's name matches the desired spring arm name
+        if (ChildComponent->GetName() == FrontSpringArmNameToFind.ToString())
+        {
+
+            // Found the spring arm by name
+            TankFrontSpringArm = Cast<USpringArmComponent>(ChildComponent);
+            if (TankFrontSpringArm)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front spring found")));
+                // Found a spring arm component, now iterate through its attached children
+                for (USceneComponent* SpringArmChild : TankFrontSpringArm->GetAttachChildren())
+                {
+
+                    // Check if the child component is a camera component
+                    UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild);
+                    if (CameraComponent)
+                    {
+                        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front camera found")));
+                        //Set the found camera to the back camera
+                        FrontCamera = CameraComponent;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+
+
     }
-    else
-    {
-        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("NO CAMERA %s")));
-    }
+
+
+    //if (TankBackSpringArm)
+    //{
+    //    if (GEngine)
+    //    {
+    //        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("CMAERa Component")));
+    //    }
+    //}
 
 
 
@@ -114,6 +181,18 @@ void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
         {
             //Call Camera Scroll In
             EnhancedInputComponent->BindAction(ScrollIn, ETriggerEvent::Triggered, this, &ATank::CameraZoomInEvent);
+        }
+
+        if (ScrollOut)
+        {
+            //Call Camera Scroll In
+            EnhancedInputComponent->BindAction(ScrollOut, ETriggerEvent::Triggered, this, &ATank::CameraZoomOutEvent);
+        }
+
+        if (ToggleCamera)
+        {
+            //Call Camera Scroll In
+            EnhancedInputComponent->BindAction(ToggleCamera, ETriggerEvent::Triggered, this, &ATank::CameraToggleEvent);
         }
     }
 }
@@ -183,7 +262,7 @@ void ATank::HandBreakEvent(const FInputActionValue& Value, ETriggerEvent Trigger
 void ATank::TankShootTimeLineUpdate(float Alpha)
 {
     GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("UPDATE IS CALLED SET TO FALSE")));
-    TankFired = false;
+    bTankFired = false;
 
 }
 
@@ -192,7 +271,7 @@ void ATank::TankShootTimeLineFinished()
     GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED WAS CALLED")));
     FLatentActionInfo LatentInfo;
     UKismetSystemLibrary::Delay(GetWorld(), 1.2f, LatentInfo);
-    TankFired = true;
+    bTankFired = true;
     GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED CALLED SET TO TRUE")));
 }
 
@@ -201,7 +280,7 @@ void ATank::TankShootTimeLineFinished()
 void ATank::ShootingEvent(const FInputActionValue& Value)
 {
 
-    if (TankFired == true)
+    if (bTankFired == true)
     {   
         //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT(" Fired ")));
         
@@ -283,6 +362,7 @@ void ATank::ShootingEvent(const FInputActionValue& Value)
 }
 
 
+
 //Steers the Tank
 void ATank::SteeringEvent(const FInputActionValue& Value)
 {
@@ -291,17 +371,64 @@ void ATank::SteeringEvent(const FInputActionValue& Value)
     VehicleMoveComponent->SetYawInput(SteeringValue);
 }
 
+
+//Zooms the camera in based on clamped values
 void ATank::CameraZoomInEvent(const FInputActionValue& Value)
 {
-    //Get the arm length
-    float TargetArmLength = TankBackSpringArm->TargetArmLength;
+    //Get the current arm length
+    float CurrentArmLength = TankBackSpringArm->TargetArmLength;
 
-    // Decrease the arm length by 100 units
-    TargetArmLength -= 100.0f;
+    float NewArmLength = CurrentArmLength - 100.0f;
 
-    // Clamp the arm length between 800 and 2500
-    TargetArmLength = FMath::Clamp(TargetArmLength, 800.0f, 2500.0f);
+    //Clamp length
+    NewArmLength = FMath::Clamp(NewArmLength, 800.0f, 2500.0f);
 
-    // Set the new arm length
-    TankBackSpringArm->TargetArmLength;
+    //FString NewArmLengthString = FString::Printf(TEXT("Target Arm Length: %f"), NewArmLength);
+    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, NewArmLengthString);
+
+    //Set the clamped arm length
+    TankBackSpringArm->TargetArmLength = NewArmLength;
 }
+
+
+//Zooms the camera out based on clamped values
+void ATank::CameraZoomOutEvent(const FInputActionValue& Value)
+{
+    //Get the current arm length
+    float CurrentArmLength = TankBackSpringArm->TargetArmLength;
+
+    float NewArmLength = CurrentArmLength + 100.0f;
+
+    //Clamp length
+    NewArmLength = FMath::Clamp(NewArmLength, 800.0f, 2500.0f);
+
+    //Set the clamped arm length
+    TankBackSpringArm->TargetArmLength = NewArmLength;
+}
+
+
+//Toggles the camera between 1st and 3rd person
+void ATank::CameraToggleEvent(const FInputActionValue& Value)
+{
+    // Deactivate both cameras
+    FrontCamera->Deactivate();
+    BackCamera->Deactivate();
+
+
+    //Reclipating the flip flop node
+    // Toggle the camera state
+    bIsBackCameraActive = !bIsBackCameraActive;
+
+    // Activate the appropriate camera based on the state
+    if (bIsBackCameraActive)
+    {
+        BackCamera->Activate();
+    }
+    else
+    {
+        FrontCamera->Activate();
+    }
+}
+
+
+
