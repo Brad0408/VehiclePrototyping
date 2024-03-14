@@ -8,6 +8,7 @@
 #include "Components/TimelineComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "NiagaraComponent.h"
 #include "Tank.generated.h"
 
 
@@ -115,6 +116,11 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	float SpeedLimit = 50.0f;
 
+	//Declare if the tank is reversing
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsReversing = false;
+
+
 	//Declare the screen shake
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UCameraShakeBase>TankShootCameraShake;
@@ -140,6 +146,12 @@ protected:
 
 	//Declare the 3rd person back camera
 	TObjectPtr<UCameraComponent> BackCamera;
+
+	//Declare the left wheel dust component
+	TObjectPtr<UNiagaraComponent> LeftWheelDust;
+
+	//Declare the right wheel dust component
+	TObjectPtr<UNiagaraComponent> RightWheelDust;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
@@ -179,5 +191,9 @@ protected:
 	//Declare function to set the tanks max speed
 	UFUNCTION()
 	void SetMaxReverseSpeed();
+
+	//Declare function to set the location of the tanks wheel dust
+	UFUNCTION()
+	void SetWheelDustLocation(bool bIsTankReversing);
 
 };
