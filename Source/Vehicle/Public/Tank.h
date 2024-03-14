@@ -8,6 +8,7 @@
 #include "Components/TimelineComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "NiagaraComponent.h"
 #include "Tank.generated.h"
 
 
@@ -64,6 +65,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 	//Setup the player input component
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -101,11 +104,22 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UChaosWheeledVehicleMovementComponent> VehicleMoveComponent;
 
+	//Declare the tanks shooting state
 	UPROPERTY(BlueprintReadWrite)
 	bool bTankFired = true;
 
+	//Declare which camera is active
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsBackCameraActive = true;
+
+	//Declare the tanks speed limit
+	UPROPERTY(BlueprintReadWrite)
+	float SpeedLimit = 50.0f;
+
+	//Declare if the tank is reversing
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsReversing = false;
+
 
 	//Declare the screen shake
 	UPROPERTY(EditAnywhere)
@@ -132,6 +146,12 @@ protected:
 
 	//Declare the 3rd person back camera
 	TObjectPtr<UCameraComponent> BackCamera;
+
+	//Declare the left wheel dust component
+	TObjectPtr<UNiagaraComponent> LeftWheelDust;
+
+	//Declare the right wheel dust component
+	TObjectPtr<UNiagaraComponent> RightWheelDust;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
@@ -163,5 +183,17 @@ protected:
 
 	UFUNCTION()
 	void TankShootTimeLineFinished();
+
+	//Declare function to set the tanks max speed
+	UFUNCTION()
+	void SetMaxForwardSpeed();
+
+	//Declare function to set the tanks max speed
+	UFUNCTION()
+	void SetMaxReverseSpeed();
+
+	//Declare function to set the location of the tanks wheel dust
+	UFUNCTION()
+	void SetWheelDustLocation(bool bIsTankReversing);
 
 };

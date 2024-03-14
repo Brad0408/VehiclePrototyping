@@ -41,17 +41,20 @@ void ATank::BeginPlay()
     //TankShootingTimeLine.SetTimelineFinishedFunc(ShootingFinishedEvent);
 
 
-    // Iterate through all attached child components of TankSkeletonMesh
+    //Iterate through all attached child components of TankSkeletonMesh
     for (USceneComponent* ChildComponent : TankSkeletonMesh->GetAttachChildren())
     {
 
-        // Name of the spring arm you want to find
+        //Names of the spring arm you want to find
         FName BackSpringArmNameToFind(TEXT("SpringArm"));
         FName FrontSpringArmNameToFind(TEXT("SpringArm1"));
 
+        //Names of the niagara componenets
+        FName LeftDustToFind(TEXT("BLeftWheelDust"));
+        FName RightDustToFind(TEXT("BRightWheelDust"));
 
         /////////////For find the back spring arm and the camera attached to that spring arm/////////////////
-        // Check if the child component's name matches the desired spring arm name
+        //Check if the child component's name matches the spring arm name
         if (ChildComponent->GetName() == BackSpringArmNameToFind.ToString())
         {
 
@@ -59,16 +62,15 @@ void ATank::BeginPlay()
             TankBackSpringArm = Cast<USpringArmComponent>(ChildComponent);
             if (TankBackSpringArm)
             {
-                GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back spring found")));
-                // Found a spring arm component, now iterate through its attached children
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back spring found")));
+                //Found a spring arm component, now iterate through its attached children
                 for (USceneComponent* SpringArmChild : TankBackSpringArm->GetAttachChildren())
                 {
  
                     // Check if the child component is a camera component
-                    UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild);
-                    if (CameraComponent)
+                    if (UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild))
                     {
-                        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back camera found")));
+                        //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back camera found")));
                         //Set the found camera to the back camera
                         BackCamera = CameraComponent;
 
@@ -80,7 +82,6 @@ void ATank::BeginPlay()
 
 
         /////////////For find the front spring arm and the camera attached to that spring arm/////////////////
-        // Check if the child component's name matches the desired spring arm name
         if (ChildComponent->GetName() == FrontSpringArmNameToFind.ToString())
         {
 
@@ -88,16 +89,15 @@ void ATank::BeginPlay()
             TankFrontSpringArm = Cast<USpringArmComponent>(ChildComponent);
             if (TankFrontSpringArm)
             {
-                GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front spring found")));
-                // Found a spring arm component, now iterate through its attached children
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front spring found")));
+                //Found a spring arm component, now iterate through its attached children
                 for (USceneComponent* SpringArmChild : TankFrontSpringArm->GetAttachChildren())
                 {
 
                     // Check if the child component is a camera component
-                    UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild);
-                    if (CameraComponent)
+                    if (UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild))
                     {
-                        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front camera found")));
+                        //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front camera found")));
                         //Set the found camera to the back camera
                         FrontCamera = CameraComponent;
 
@@ -109,18 +109,81 @@ void ATank::BeginPlay()
 
 
 
+        //Check for the dust componenets
+        if (ChildComponent->GetName() == LeftDustToFind.ToString())
+        {
+
+            //Check if the child component is a Niagara Particle System Component
+            LeftWheelDust = Cast<UNiagaraComponent>(ChildComponent);
+            if (LeftWheelDust)
+            {
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("left dust found")));
+            }
+        }
+
+
+        if (ChildComponent->GetName() == RightDustToFind.ToString())
+        {
+
+            // Check if the child component is a Niagara Particle System Component
+            RightWheelDust = Cast<UNiagaraComponent>(ChildComponent);
+            if (RightWheelDust)
+            {
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("right dust found")));
+            }
+        }
+
+
+        if (TankBackSpringArm && TankFrontSpringArm && RightWheelDust && LeftWheelDust)
+        {   
+            GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("ALL COMPONENTNS FOUND")));
+            break;
+        }
     }
 
 
-    //if (TankBackSpringArm)
-    //{
-    //    if (GEngine)
-    //    {
-    //        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("CMAERa Component")));
-    //    }
-    //}
+
+}
+
+void ATank::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    //Create an array to store all the tank wheels
+    TArray<UChaosVehicleWheel*> TankWheels;
+
+    //Get the tank wheels and iterate through each one
+    for (TObjectPtr<UChaosVehicleWheel>& WheelPtr : VehicleMoveComponent->Wheels)
+    {
+        //Add each returned wheel to the array
+        TankWheels.Add(WheelPtr.Get());
+    }
+
+    //Just getting random wheel, in this case the 3 one - doesnt matter which wheel they are all rotating the same 
+    TObjectPtr<UChaosVehicleWheel> FourthWheel = TankWheels[3];
+
+    if (FourthWheel)
+    {
+        float WheelRotationSpeed = FourthWheel->GetRotationAngularVelocity();
 
 
+        //Doing this to check if reversing rather than if throttle or break was inputed is 
+        //because the tank can still roll after all inputs are stopped, so if the player lightly taps the breaks but is still moving forward doing this way
+        //means any visual updates based on direction are acutally accurate
+        if (WheelRotationSpeed > 100)
+        {
+            bIsReversing = true;
+        }
+        else
+        {
+            bIsReversing = false;
+        }
+    }
+
+    //Set the wheel dust based of if the tank is the reversing
+    SetWheelDustLocation(bIsReversing);
+
+    
 
 }
 
@@ -223,6 +286,9 @@ void ATank::ThrottleEvent(const FInputActionValue& Value)
     float ThrottleValue = Value.Get<float>();
 
     VehicleMoveComponent->SetThrottleInput(ThrottleValue);
+
+    //Sets speed limit
+    SetMaxForwardSpeed();
 }
 
 
@@ -241,6 +307,9 @@ void ATank::BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEven
         //Basically for EventCompleted, just fully break the tank
         VehicleMoveComponent->SetBrakeInput(0.0f);
     }
+
+    //Sets speed limit
+    SetMaxReverseSpeed();
 }
 
 
@@ -274,7 +343,6 @@ void ATank::TankShootTimeLineFinished()
     bTankFired = true;
     GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED CALLED SET TO TRUE")));
 }
-
 
 //Deals with Shooting TankShells
 void ATank::ShootingEvent(const FInputActionValue& Value)
@@ -410,16 +478,16 @@ void ATank::CameraZoomOutEvent(const FInputActionValue& Value)
 //Toggles the camera between 1st and 3rd person
 void ATank::CameraToggleEvent(const FInputActionValue& Value)
 {
-    // Deactivate both cameras
+    //Deactivate both cameras
     FrontCamera->Deactivate();
     BackCamera->Deactivate();
 
 
-    //Reclipating the flip flop node
-    // Toggle the camera state
+    //Replicating the flip flop node
+    //Toggle the camera state
     bIsBackCameraActive = !bIsBackCameraActive;
 
-    // Activate the appropriate camera based on the state
+    //Activate the appropriate camera based on the state
     if (bIsBackCameraActive)
     {
         BackCamera->Activate();
@@ -430,5 +498,64 @@ void ATank::CameraToggleEvent(const FInputActionValue& Value)
     }
 }
 
+//Stops the tank from going over 50 km/h
+void ATank::SetMaxForwardSpeed()
+{
+    float TankForwardSpeed = VehicleMoveComponent->GetForwardSpeed();
+
+    if(TankForwardSpeed * 0.036 > SpeedLimit)
+    {
+        VehicleMoveComponent->SetThrottleInput(0.0);
+    }
+}
+
+//Stop the tank from going over 50 km/h when reversing
+void ATank::SetMaxReverseSpeed()
+{
+    float TankForwardSpeed = VehicleMoveComponent->GetForwardSpeed();
+
+    float TankBackSpeed = TankForwardSpeed * -1.0;
+    
+    if(TankBackSpeed * 0.036 > SpeedLimit)
+    {
+        VehicleMoveComponent->SetBrakeInput(0.0);
+    }
+}
+
+
+//Sets the location of the wheel dust 
+void ATank::SetWheelDustLocation(bool bIsTankReversing)
+{
+    //Create vectors to store the location of the niagara componenets
+    FVector LeftWheelDustLocation;
+    FVector RightWheelDustLocation;
+
+    //If tank is reversing set the wheel dust to the front of the tank
+    if (bIsTankReversing == true)
+    {
+        //Set the location of the wheel dust based of the wheel joint names
+        LeftWheelDustLocation = TankSkeletonMesh->GetSocketLocation("lf_wheel_2_jnt");
+        RightWheelDustLocation = TankSkeletonMesh->GetSocketLocation("rt_wheel_2_jnt");
+
+        //Weird offset calculation to make the dust in the right location
+        LeftWheelDustLocation.Y -= 20.0f;
+        RightWheelDustLocation.Y -= 20.0f;
+
+        //Set the tanks niagara component to this location in the world
+        LeftWheelDust->SetWorldLocation(LeftWheelDustLocation);
+        RightWheelDust->SetWorldLocation(RightWheelDustLocation);
+    }
+    else
+    {
+        //Set the location of the wheel dust based of the wheel joint names
+        LeftWheelDustLocation = TankSkeletonMesh->GetSocketLocation("lf_wheel_7_jnt");
+        RightWheelDustLocation = TankSkeletonMesh->GetSocketLocation("rt_wheel_7_jnt");
+
+        //Set the tanks niagara component to this location in the world
+        LeftWheelDust->SetWorldLocation(LeftWheelDustLocation);
+        RightWheelDust->SetWorldLocation(RightWheelDustLocation);
+    }
+
+}
 
 
