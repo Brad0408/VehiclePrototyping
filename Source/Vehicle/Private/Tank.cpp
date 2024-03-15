@@ -30,16 +30,7 @@ ATank::ATank()
 void ATank::BeginPlay()
 {
 	Super::BeginPlay();
-
-
-    //FOnTimelineFloat ShootingProgressUpdate;
-    //ShootingProgressUpdate.BindUFunction(this, FName("TankShootTimeLineUpdate"));
-
-    //FOnTimelineEvent ShootingFinishedEvent;
-    //ShootingFinishedEvent.BindUFunction(this, FName("TankShootTimeLineFinished"));
-
-    //TankShootingTimeLine.AddInterpFloat(TankShootingCurvefloat, ShootingProgressUpdate);
-    //TankShootingTimeLine.SetTimelineFinishedFunc(ShootingFinishedEvent);
+    
 
 
     //Iterate through all attached child components of TankSkeletonMesh
@@ -50,11 +41,11 @@ void ATank::BeginPlay()
         FName BackSpringArmNameToFind(TEXT("SpringArm"));
         FName FrontSpringArmNameToFind(TEXT("SpringArm1"));
 
-        //Names of the niagara componenets
+        //Names of the niagara components
         FName LeftDustToFind(TEXT("BLeftWheelDust"));
         FName RightDustToFind(TEXT("BRightWheelDust"));
 
-        //Names of the audio componenets
+        //Names of the audio components
         FName TrackCueToFind(TEXT("Tank_Tracks_Cue"));
         FName EngineCueToFind(TEXT("Engine_Idle_Cue"));
 
@@ -114,7 +105,7 @@ void ATank::BeginPlay()
 
 
 
-        //Check for the dust componenets
+        //Check for the dust components
         if (ChildComponent->GetName() == LeftDustToFind.ToString())
         {
 
@@ -141,7 +132,7 @@ void ATank::BeginPlay()
         if (ChildComponent->GetName() == TrackCueToFind.ToString())
         {
 
-            //Found the spring audio componenet
+            //Found the spring audio components
             TankTrackAudio = Cast<UAudioComponent>(ChildComponent);
             if (TankTrackAudio)
             {
@@ -153,7 +144,7 @@ void ATank::BeginPlay()
         if (ChildComponent->GetName() == EngineCueToFind.ToString())
         {
 
-            //Found the spring audio componenet
+            //Found the spring audio components
             TankEngineAudio = Cast<UAudioComponent>(ChildComponent);
             if (TankEngineAudio)
             {
@@ -198,9 +189,9 @@ void ATank::Tick(float DeltaSeconds)
         float WheelRotationSpeed = FourthWheel->GetRotationAngularVelocity();
 
 
-        //Doing this to check if reversing rather than if throttle or break was inputed is 
+        //Doing this to check if reversing rather than if throttle or break was inputted is 
         //because the tank can still roll after all inputs are stopped, so if the player lightly taps the breaks but is still moving forward doing this way
-        //means any visual updates based on direction are acutally accurate
+        //means any visual updates based on direction are actually accurate
         if (WheelRotationSpeed > 100)
         {
             bIsReversing = true;
@@ -220,6 +211,9 @@ void ATank::Tick(float DeltaSeconds)
     //Changes the engine pitch based of speed
     EngineSounds(FourthWheel, bIsReversing);
 
+    //Changes tank audio based of pitch
+    TrackSounds(bIsReversing);
+    
     //'Animates' tank tracks
     TrackAnimations(FourthWheel, bIsReversing);
 }
@@ -369,22 +363,6 @@ void ATank::HandBreakEvent(const FInputActionValue& Value, ETriggerEvent Trigger
     }
 }
 
-void ATank::TankShootTimeLineUpdate(float Alpha)
-{
-    GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("UPDATE IS CALLED SET TO FALSE")));
-    bTankFired = false;
-
-}
-
-void ATank::TankShootTimeLineFinished()
-{
-    GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED WAS CALLED")));
-    FLatentActionInfo LatentInfo;
-    UKismetSystemLibrary::Delay(GetWorld(), 1.2f, LatentInfo);
-    bTankFired = true;
-    GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("FINISHED CALLED SET TO TRUE")));
-}
-
 //Deals with Shooting TankShells
 void ATank::ShootingEvent(const FInputActionValue& Value)
 {
@@ -491,10 +469,7 @@ void ATank::CameraZoomInEvent(const FInputActionValue& Value)
 
     //Clamp length
     NewArmLength = FMath::Clamp(NewArmLength, 800.0f, 2500.0f);
-
-    //FString NewArmLengthString = FString::Printf(TEXT("Target Arm Length: %f"), NewArmLength);
-    //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, NewArmLengthString);
-
+    
     //Set the clamped arm length
     TankBackSpringArm->TargetArmLength = NewArmLength;
 }
@@ -567,7 +542,7 @@ void ATank::SetMaxReverseSpeed()
 //Sets the location of the wheel dust 
 void ATank::SetWheelDustLocation(bool bIsTankReversing)
 {
-    //Create vectors to store the location of the niagara componenets
+    //Create vectors to store the location of the niagara components
     FVector LeftWheelDustLocation;
     FVector RightWheelDustLocation;
 
@@ -601,7 +576,7 @@ void ATank::SetWheelDustLocation(bool bIsTankReversing)
 }
 
 
-//Controlls the scale of dust particle effects based on the tanks speed
+//Controls the scale of dust particle effects based on the tanks speed
 void ATank::DustScaleEffects()
 {
     FVector StartTraceLocation = GetActorLocation() + FVector(0.0f, 0.0f, 50.0f);
@@ -673,7 +648,27 @@ void ATank::EngineSounds(UChaosVehicleWheel* Wheel, bool bIsTankReversing)
     }
 }
 
+//Chanes volume of track audio based of speed
+void ATank::TrackSounds(bool bIsTankReversing)
+{
+    //Wheel velocity is used as a float value to modify the pitch value of the engine
+    float TankSpeed = VehicleMoveComponent->GetForwardSpeedMPH();
 
+    if (bIsReversing == true)
+    {
+        float ReverseTankSpeed = TankSpeed * -1.0f;
+        TankTrackAudio->SetFloatParameter("Speed", ReverseTankSpeed);
+
+        float ReverseClampedTankSpeed = UKismetMathLibrary::MapRangeClamped(ReverseTankSpeed, 0.0f, 10.0f, 0.0f, 1.0f);
+        TankTrackAudio->SetVolumeMultiplier(ReverseClampedTankSpeed);
+    }
+    else
+    {
+        TankTrackAudio->SetFloatParameter("Speed", TankSpeed);
+        float ClampedTankSpeed = UKismetMathLibrary::MapRangeClamped(TankSpeed, 0.0f, 10.0f, 0.0f, 1.0f);
+        TankTrackAudio->SetVolumeMultiplier(ClampedTankSpeed);
+    }
+}
 
 
 //'Animates' tank tracks by offset the texture based on the wheel speed
@@ -691,5 +686,20 @@ void ATank::TrackAnimations(UChaosVehicleWheel* Wheel, bool bIsTankReversing)
     {
         TankSkeletonMesh->SetScalarParameterValueOnMaterials("OffsetV", WheelVelocity);
     }
+}
+
+void ATank::ModifyHealth(float Damage)
+{
+    if (Health > 0.0f)
+    {
+        Health = Health - Damage;
+
+        if (Health <= 0.0f)
+        {
+
+            
+        }
+    }
+    
 }
 
