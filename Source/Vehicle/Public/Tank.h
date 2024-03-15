@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "WheeledVehiclePawn.h"
 #include "EnhancedInputSubsystems.h" 
-#include "Components/TimelineComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "NiagaraComponent.h"
@@ -17,7 +16,6 @@ class UChaosWheeledVehicleMovementComponent;
 class ATankShell;
 class UNiagaraSystem;
 class UForceFeedbackEffect;
-class UCurveFloat;
 
 /**
  * 
@@ -121,6 +119,8 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsReversing = false;
 
+	//Declare tanks health
+	float Health;
 
 	//Declare the screen shake
 	UPROPERTY(EditAnywhere)
@@ -187,17 +187,8 @@ protected:
 
 
 
-	//Declare the Tanks shooting timeline
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Tank Shoot Curve")
-	UCurveFloat* TankShootingCurvefloat;
 
-	FTimeline TankShootingTimeLine;
-
-	UFUNCTION()
-	void TankShootTimeLineUpdate(float Alpha);
-
-	UFUNCTION()
-	void TankShootTimeLineFinished();
+	
 
 	//Declare function to set the tanks max speed
 	UFUNCTION()
@@ -219,12 +210,19 @@ protected:
 	UFUNCTION()
 	void DustScaleEffects();
 
-	//Declare funciton to manipulate the engine sounds
+	//Declare function to manipulate the engine sounds
 	UFUNCTION()
 	void EngineSounds(UChaosVehicleWheel* Wheel, bool bIsTankReversing);
 
+	//Declare function to manipulate the tank track sounds
+	UFUNCTION()
+	void TrackSounds(bool bIsTankReversing);
+	
 	//Declare function to 'animate' the tank tracks
 	UFUNCTION()
 	void TrackAnimations(UChaosVehicleWheel* Wheel, bool bIsTankReversing);
+
+	UFUNCTION(BlueprintCallable)
+	void ModifyHealth(float Damage);
 
 };
