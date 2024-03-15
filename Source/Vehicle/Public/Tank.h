@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
 #include "Tank.generated.h"
 
 
@@ -129,8 +130,13 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ATankShell> TankShellProjectile;
 
+	//Declare the tank track decals 
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UMaterialInterface> TrackDecals;
+
+
 	//Declare the Tanks Skeleton Mesh
-	UPROPERTY();
+	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> TankSkeletonMesh;
 
 	//Declare the tanks spring arm
@@ -148,10 +154,20 @@ protected:
 	TObjectPtr<UCameraComponent> BackCamera;
 
 	//Declare the left wheel dust component
+	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> LeftWheelDust;
 
 	//Declare the right wheel dust component
+	UPROPERTY()
 	TObjectPtr<UNiagaraComponent> RightWheelDust;
+
+	//Declare the tank track audio component
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> TankTrackAudio;
+
+	//Declare the engine audio component
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> TankEngineAudio;
 
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
@@ -169,7 +185,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ForceFeedback")
 	TObjectPtr<UForceFeedbackEffect> ForceFeedbackEffect;
 
-	
 
 
 	//Declare the Tanks shooting timeline
@@ -195,5 +210,21 @@ protected:
 	//Declare function to set the location of the tanks wheel dust
 	UFUNCTION()
 	void SetWheelDustLocation(bool bIsTankReversing);
+
+	//Declare function that will spawn in track decals under the wheels
+	UFUNCTION()
+	void SpawningDecalTracks();
+
+	//Declare function that will control the scale of dust size
+	UFUNCTION()
+	void DustScaleEffects();
+
+	//Declare funciton to manipulate the engine sounds
+	UFUNCTION()
+	void EngineSounds(UChaosVehicleWheel* Wheel, bool bIsTankReversing);
+
+	//Declare function to 'animate' the tank tracks
+	UFUNCTION()
+	void TrackAnimations(UChaosVehicleWheel* Wheel, bool bIsTankReversing);
 
 };
