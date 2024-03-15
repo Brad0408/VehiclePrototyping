@@ -31,6 +31,7 @@ void ATank::BeginPlay()
 {
 	Super::BeginPlay();
 
+
     //FOnTimelineFloat ShootingProgressUpdate;
     //ShootingProgressUpdate.BindUFunction(this, FName("TankShootTimeLineUpdate"));
 
@@ -53,21 +54,25 @@ void ATank::BeginPlay()
         FName LeftDustToFind(TEXT("BLeftWheelDust"));
         FName RightDustToFind(TEXT("BRightWheelDust"));
 
+        //Names of the audio componenets
+        FName TrackCueToFind(TEXT("Tank_Tracks_Cue"));
+        FName EngineCueToFind(TEXT("Engine_Idle_Cue"));
+
         /////////////For find the back spring arm and the camera attached to that spring arm/////////////////
         //Check if the child component's name matches the spring arm name
         if (ChildComponent->GetName() == BackSpringArmNameToFind.ToString())
         {
 
-            // Found the spring arm by name
+            //Set found spring arm
             TankBackSpringArm = Cast<USpringArmComponent>(ChildComponent);
             if (TankBackSpringArm)
             {
                 //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back spring found")));
-                //Found a spring arm component, now iterate through its attached children
+                //Found a spring arm component, now iterate through its attached children for the camera
                 for (USceneComponent* SpringArmChild : TankBackSpringArm->GetAttachChildren())
                 {
  
-                    // Check if the child component is a camera component
+                    //Check if the child component is a camera component
                     if (UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild))
                     {
                         //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("back camera found")));
@@ -85,16 +90,16 @@ void ATank::BeginPlay()
         if (ChildComponent->GetName() == FrontSpringArmNameToFind.ToString())
         {
 
-            // Found the spring arm by name
+            //Set found spring arm
             TankFrontSpringArm = Cast<USpringArmComponent>(ChildComponent);
             if (TankFrontSpringArm)
             {
                 //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front spring found")));
-                //Found a spring arm component, now iterate through its attached children
+                //Found a spring arm component, now iterate through its attached children for the camera
                 for (USceneComponent* SpringArmChild : TankFrontSpringArm->GetAttachChildren())
                 {
 
-                    // Check if the child component is a camera component
+                    //Check if the child component is a camera component
                     if (UCameraComponent* CameraComponent = Cast<UCameraComponent>(SpringArmChild))
                     {
                         //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("front camera found")));
@@ -133,8 +138,34 @@ void ATank::BeginPlay()
             }
         }
 
+        if (ChildComponent->GetName() == TrackCueToFind.ToString())
+        {
 
-        if (TankBackSpringArm && TankFrontSpringArm && RightWheelDust && LeftWheelDust)
+            //Found the spring audio componenet
+            TankTrackAudio = Cast<UAudioComponent>(ChildComponent);
+            if (TankTrackAudio)
+            {
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("track audio found")));
+            }
+        }
+
+
+        if (ChildComponent->GetName() == EngineCueToFind.ToString())
+        {
+
+            //Found the spring audio componenet
+            TankEngineAudio = Cast<UAudioComponent>(ChildComponent);
+            if (TankEngineAudio)
+            {
+                //GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("engine audio found")));
+            }
+        }
+
+
+
+
+        //Final check to see if all values on the tank in the blueprint have been found and are valid
+        if (TankBackSpringArm && TankFrontSpringArm && RightWheelDust && LeftWheelDust && TankTrackAudio && TankEngineAudio)
         {   
             GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::White, FString::Printf(TEXT("ALL COMPONENTNS FOUND")));
             break;
@@ -183,8 +214,14 @@ void ATank::Tick(float DeltaSeconds)
     //Set the wheel dust based of if the tank is the reversing
     SetWheelDustLocation(bIsReversing);
 
+    //Spawns Decal tracks on the ground
+    SpawningDecalTracks();
     
+    //Changes the engine pitch based of speed
+    EngineSounds(FourthWheel, bIsReversing);
 
+    //'Animates' tank tracks
+    TrackAnimations(FourthWheel, bIsReversing);
 }
 
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -289,6 +326,9 @@ void ATank::ThrottleEvent(const FInputActionValue& Value)
 
     //Sets speed limit
     SetMaxForwardSpeed();
+
+    //Sets dust scale
+    DustScaleEffects();
 }
 
 
@@ -310,6 +350,7 @@ void ATank::BreakEvent(const FInputActionValue& Value, ETriggerEvent TriggerEven
 
     //Sets speed limit
     SetMaxReverseSpeed();
+
 }
 
 
@@ -372,8 +413,8 @@ void ATank::ShootingEvent(const FInputActionValue& Value)
         //Check if TankShellProjectile was set in the editor
         if (TankShellProjectile)
         {
-            //Spawn the tank projectile at the end of the tank barrel which is set in the editor and store this here
-            AActor* SpawnedTankShellProjectile = World->SpawnActor<ATankShell>(TankShellProjectile, TankShootPointTransform);
+            //Spawn the tank projectile at the end of the tank barrel which is set in the editor
+            World->SpawnActor<ATankShell>(TankShellProjectile, TankShootPointTransform);
         }
 
 
@@ -556,6 +597,99 @@ void ATank::SetWheelDustLocation(bool bIsTankReversing)
         RightWheelDust->SetWorldLocation(RightWheelDustLocation);
     }
 
+   
 }
 
+
+//Controlls the scale of dust particle effects based on the tanks speed
+void ATank::DustScaleEffects()
+{
+    FVector StartTraceLocation = GetActorLocation() + FVector(0.0f, 0.0f, 50.0f);
+    FVector EndTraceLocation = StartTraceLocation - FVector(0.0f, 0.0f, 100.0f);
+    ETraceTypeQuery TraceChannel = UEngineTypes::ConvertToTraceType(ECC_Visibility);
+    FHitResult HitResult;
+
+    bool bHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(), StartTraceLocation, EndTraceLocation, TraceChannel, false, TArray<AActor*>(), EDrawDebugTrace::None, HitResult, true);
+
+    if (bHit)
+    {
+        float SpeedValue = VehicleMoveComponent->GetForwardSpeedMPH();
+
+        //Clamp the values
+        float DustParticleClampedValue = UKismetMathLibrary::MapRangeClamped(SpeedValue, 0.0f, 100.0f, 0.0f, 2000.0f);
+        float WheelSpeedClampedValue = UKismetMathLibrary::MapRangeClamped(SpeedValue, 0.0f, 100.0f, 0.0f, 125.0f);
+
+        //Set the scale based of the clamped values
+        LeftWheelDust->SetFloatParameter("DustParticleScale", DustParticleClampedValue);
+        RightWheelDust->SetFloatParameter("DustParticleScale", DustParticleClampedValue);
+
+        LeftWheelDust->SetFloatParameter("WheelSpeed", WheelSpeedClampedValue);
+        RightWheelDust->SetFloatParameter("WheelSpeed", WheelSpeedClampedValue);
+
+    }
+    else
+    {
+        //If the tank is in the air dont bother showing the dust particles
+        LeftWheelDust->SetFloatParameter("DustParticleScale", 0.0f);
+        RightWheelDust->SetFloatParameter("DustParticleScale", 0.0f);
+
+        LeftWheelDust->SetFloatParameter("WheelSpeed", 0.0f);
+        RightWheelDust->SetFloatParameter("WheelSpeed", 0.0f);
+    }
+
+}
+
+
+//Spawns Decal tracks on the ground
+void ATank::SpawningDecalTracks()
+{
+    //The decal spawn location is based on where the Niagara components are located - which are moved around in SetWheelDustLocation()
+    FVector LeftTrackLocation = LeftWheelDust->GetComponentLocation();
+    FVector RightTrackLocation = RightWheelDust->GetComponentLocation();
+
+    //Left Track Decals
+    UGameplayStatics::SpawnDecalAtLocation(GetWorld(), TrackDecals, FVector(100.0f, 100.0f, 100.f), LeftTrackLocation, GetActorRotation(), 3.0f);
+
+
+    //Right Track Decals
+    UGameplayStatics::SpawnDecalAtLocation(GetWorld(), TrackDecals, FVector(100.0f, 100.0f, 100.f), RightTrackLocation, GetActorRotation(), 3.0f);
+}
+
+
+//Changes the pitch of the engine sound effect based of the speed
+void ATank::EngineSounds(UChaosVehicleWheel* Wheel, bool bIsTankReversing)
+{
+    //Wheel velocity is used as a float value to modify the pitch value of the engine
+    float WheelVelocity = Wheel->GetRotationAngularVelocity();
+
+    if (bIsReversing == true)
+    {
+        TankEngineAudio->SetFloatParameter("RPM", WheelVelocity);
+    }
+    else
+    {
+        float ReverseWheelVelocity = WheelVelocity * -1.0f;
+        TankEngineAudio->SetFloatParameter("RPM", ReverseWheelVelocity);
+    }
+}
+
+
+
+
+//'Animates' tank tracks by offset the texture based on the wheel speed
+void ATank::TrackAnimations(UChaosVehicleWheel* Wheel, bool bIsTankReversing)
+{
+    //Wheel velocity is used as float value to offset the tank texture
+    float WheelVelocity = Wheel->GetRotationAngularVelocity();
+
+    if (bIsReversing == true)
+    {
+        float ReverseWheelVelocity = WheelVelocity * -1.0f;
+        TankSkeletonMesh->SetScalarParameterValueOnMaterials("OffsetV", ReverseWheelVelocity);
+    }
+    else
+    {
+        TankSkeletonMesh->SetScalarParameterValueOnMaterials("OffsetV", WheelVelocity);
+    }
+}
 
