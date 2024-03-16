@@ -120,7 +120,8 @@ protected:
 	bool bIsReversing = false;
 
 	//Declare tanks health
-	float Health;
+	UPROPERTY(BlueprintReadWrite)
+	float Health = 100.0f;
 
 	//Declare the screen shake
 	UPROPERTY(EditAnywhere)
@@ -133,7 +134,6 @@ protected:
 	//Declare the tank track decals 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UMaterialInterface> TrackDecals;
-
 
 	//Declare the Tanks Skeleton Mesh
 	UPROPERTY()
@@ -172,6 +172,10 @@ protected:
 	//Declare NiagaraEffect to be set in editor
 	UPROPERTY(EditAnywhere, Category = "VFX")
 	TObjectPtr<UNiagaraSystem> ShootingVFX;
+
+	//Declare NiagaraEffect to be set in editor
+	UPROPERTY(EditAnywhere, Category = "VFX")
+	TObjectPtr<UNiagaraSystem> TankExplosion;
 
 	//Declare ExplosionSound to be set in editor
 	UPROPERTY(EditAnywhere, Category = "Sounds")

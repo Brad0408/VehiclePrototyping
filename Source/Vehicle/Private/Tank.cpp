@@ -688,16 +688,28 @@ void ATank::TrackAnimations(UChaosVehicleWheel* Wheel, bool bIsTankReversing)
     }
 }
 
+//Modify Tanks Health
 void ATank::ModifyHealth(float Damage)
 {
+    //If > 0 
     if (Health > 0.0f)
     {
+        //Actually take damage
         Health = Health - Damage;
 
+        //If health is 0
         if (Health <= 0.0f)
         {
+            //Spawn a blow up VFX
+            if (TankExplosion)
+            {
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TankExplosion, GetActorLocation(), GetActorRotation());
+            }
 
-            
+            //Get rid of the tank
+            Destroy();
+
+            //In BP a destroyed tank is spawned and UI is displayed letting the player restart the level or go back to main menu
         }
     }
     
