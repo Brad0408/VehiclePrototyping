@@ -5,7 +5,7 @@ First time looking a Unreal's VehiclePawns and ChoasWheels/Plugins.
 Also first time refactoring functionality into C++ after getting it to work within a blueprint.
 
 
-FOR C++ (Go to Source -> Vehicle -> Private)
+FOR C++ (Go to Source -> Vehicle -> Private) or (https://tinyurl.com/z2bnhp9t)
 
 (Tank.cpp is the bulk of functionality for this project)
 
