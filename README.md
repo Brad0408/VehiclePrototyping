@@ -15,7 +15,12 @@ FOR C++ (Go to Source -> Vehicle -> 'Private' & 'Public') or (https://tinyurl.co
 
 
 
-Here is the tank working ! - https://youtu.be/kPaiKcoHShI
+<ins> Here is the tank working ! - </ins>
+
+
+[![Tank](https://i9.ytimg.com/vi_webp/kPaiKcoHShI/mq3.webp?sqp=CIzCuLIG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgXChOMA8=&rs=AOn4CLD9ZWHLy6xe1-QT4V-K5H8EHCmM9w)](https://youtu.be/kPaiKcoHShI)
+
+
 
 Here is also a development playlist of testing newly implemented mechanics - https://www.youtube.com/playlist?list=PLYBjgWvMiW73fJYIZKgGRJQZQmpUzUtOW
 
