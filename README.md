@@ -20,7 +20,7 @@ FOR C++ (Go to Source -> Vehicle -> 'Private' & 'Public') or (https://tinyurl.co
 <ins> Here is the tank working ! - </ins>
 
 
-[![Tank](https://i9.ytimg.com/vi_webp/kPaiKcoHShI/mq3.webp?sqp=CIzCuLIG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgXChOMA8=&rs=AOn4CLD9ZWHLy6xe1-QT4V-K5H8EHCmM9w)](https://youtu.be/kPaiKcoHShI)
+[![Tank](https://i.ytimg.com/vi/kPaiKcoHShI/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGEsgVChlMA8=&amp;rs=AOn4CLBq3-GsuVV9gS1V0YG3h2Mka04BHg)](https://youtu.be/kPaiKcoHShI)
 
 
 
