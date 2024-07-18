@@ -38,3 +38,10 @@ The tank is capable of -
 - Also controller support that provides haptic feedback when driving and feeling explosions from land mines/tank shells
 
 All visual and audio assets for the tank were sourced online
+
+## Compliling + Cloning
+
+As this is an Unreal Project normal steps can be taken, but in summary
+1) Clone the project and stay on the main branch
+2) Double click 'Vehicle.uproject' once cloned to open the Unreal project (Generated files if prompted and have Unreal 5.2.1 downloaded)
+3) When in engine the game can be played like normal with the green play arrow at the top
